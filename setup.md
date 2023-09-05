@@ -65,7 +65,7 @@ git clone git@github.com:pocrca/anomaly_lte.git
 
 # Install python libraries
 ```bash
-cd lte_anomaly
+cd anomaly_lte
 pip install -r requirements.txt
 ```
 
