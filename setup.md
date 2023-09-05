@@ -1,7 +1,7 @@
 # Set up Github account
 1. Set up Github user account (if one don't have account)
 2. Request for user account to be added to private repository (under 3)
-3. Open at web browser: https://github.com/pocrca/lte_anomaly.git  
+3. Open at web browser: https://github.com/pocrca/anomaly_lte.git  
 &nbsp;  
 
 # WSL2 and Ubuntu setup
@@ -60,7 +60,7 @@ ssh-keygen -t 99001 -c "email_used_in_github@example.com"
 &nbsp;
 3. Perform clone at Ubuntu
 ```bash
-git clone git@github.com:pocrca/lte_anomaly.git
+git clone git@github.com:pocrca/anomaly_lte.git
 ```
 
 # Install python libraries
