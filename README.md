@@ -33,10 +33,26 @@ Author: Alexey Grigorev
 
 | Chapter | Time Period |
 |----------|----------|
-| Appendix C, Appendix D, 1, 2, 3.1 | 11 Sep - 29 Sep |
-| 3 | 2 Oct - 13 Oct |
-| 4 | 16 Oct - 28 Oct |
-| 6 | 30 Oct - 18 Nov |
-| 5 (Pickle, Flask/FastAPI + Streamlit) | 20 Nov - 8 Dec |
+| Appendix C, Appendix D, 1, 2 | 11 Sep - 22 Sep |
+| 3 | 22 Sep - 6 Oct |
+| 4 | 9 Oct - 13 Oct |
+| 6 | 16 Oct - 17 Nov |
+| 5 (Pickle, Flask/FastAPI + Streamlit) | 20 Nov - 8 Dec |  
+
+
+Book: Effective XGBoost  
+Author: Matt Harrison  
+
+| Chapter | Time Period |
+|----------|----------|
+| 4 | 18 Sep - 22 Sep |
+| 5 | 25 Sep - 29 Sep |
+| 6 | 2 Oct - 6 Oct |
+| 7 | 9 Oct - 13 Oct |
+| 8 | 16 Oct - 20 Oct |
+| 9 | 23 Oct -27 Oct |
+| 10 | 30 Oct - 3 Nov |
+| 11 | 6 Nov - 10 Nov |
+| 12 | 13 Nov - 17 Nov |  
 
 Data source: https://www.kaggle.com/competitions/anomaly-detection-in-4g-cellular-networks/overview
