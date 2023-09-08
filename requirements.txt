@@ -6,3 +6,5 @@ jupyter
 seaborn
 streamlit
 dill
+xgboost
+hyperopt
