@@ -2,6 +2,9 @@
 
 ## Objective
 1. Apply 3 supervised learning models to detect anormalies in LTE activity dataset.
+  * Decision Tree
+  * Random Forest
+  * XGBoost
 2. Develop a simple GUI/web application to allow user interactivity with trained models. 
 
 ## Deliverables
