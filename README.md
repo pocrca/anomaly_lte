@@ -48,14 +48,15 @@ Author: Matt Harrison
 
 | Chapter | Time Period |
 |----------|----------|
-| 4 | 18 Sep - 22 Sep |
-| 5 | 25 Sep - 29 Sep |
-| 6 | 2 Oct - 6 Oct |
-| 7 | 9 Oct - 13 Oct |
-| 8 | 16 Oct - 20 Oct |
-| 9 | 23 Oct -27 Oct |
-| 10 | 30 Oct - 3 Nov |
-| 11 | 6 Nov - 10 Nov |
-| 12 | 13 Nov - 17 Nov |  
+| 4 - Tree Creation | 18 Sep - 22 Sep |
+| 5 - Stumps| 25 Sep - 29 Sep |
+| 6 - Model Complexity & Hyperparameters| 2 Oct - 6 Oct |
+| 7 - Tree Hyperparameters| 9 Oct - 13 Oct |
+| 8 - Random Forest | 16 Oct - 20 Oct |
+| 9 - XGBoost | 23 Oct -27 Oct |
+| 10 - Early Stopping | 30 Oct - 3 Nov |
+| 11 - XGBoost Hyperparameters| 6 Nov - 10 Nov |
+| 12 - Hyperopt | 13 Nov - 17 Nov |  
+| 13 - Step-wise tuning with | 20 Nov - 24 Nov |  
 
 Data source: https://www.kaggle.com/competitions/anomaly-detection-in-4g-cellular-networks/overview
