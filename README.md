@@ -57,6 +57,6 @@ Author: Matt Harrison
 | 10 - Early Stopping | 30 Oct - 3 Nov |
 | 11 - XGBoost Hyperparameters| 6 Nov - 10 Nov |
 | 12 - Hyperopt | 13 Nov - 17 Nov |  
-| 13 - Step-wise tuning with | 20 Nov - 24 Nov |  
+| 13 - Step-wise tuning with Hyperopt | 20 Nov - 24 Nov |  
 
 Data source: https://www.kaggle.com/competitions/anomaly-detection-in-4g-cellular-networks/overview
