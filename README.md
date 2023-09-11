@@ -36,11 +36,11 @@ Author: Alexey Grigorev
 
 | Chapter | Time Period |
 |----------|----------|
-| Appendix C, Appendix D, 1, 2 (EDA sections) | 11 Sep - 22 Sep |
-| 3, 6.1, 6.2 (Decision Trees) | 22 Sep - 6 Oct |
-| 4, 6.3 (Random Forest) | 9 Oct - 13 Oct |
-| 6 | 16 Oct - 17 Nov |
-| 5 (Pickle, Flask/FastAPI + Streamlit) | 20 Nov - 8 Dec |  
+| Appendix C, Appendix D, 1, 2 (EDA sections) | 12 Oct - 20 Oct |
+| 3, 6.1, 6.2 (Decision Trees) | 23 Oct - 3 Nov |
+| 4 | 6 Nov - 10 Nov |
+| 6 | 13 Nov - 17 Nov |
+| 5 (Pickle, Flask/FastAPI + Streamlit) | 27 Nov - 1 Dec |  
 
 
 Book: Effective XGBoost  
@@ -48,15 +48,12 @@ Author: Matt Harrison
 
 | Chapter | Time Period |
 |----------|----------|
-| 4 - Tree Creation | 18 Sep - 22 Sep |
-| 5 - Stumps| 25 Sep - 29 Sep |
-| 6 - Model Complexity & Hyperparameters| 2 Oct - 6 Oct |
-| 7 - Tree Hyperparameters| 9 Oct - 13 Oct |
-| 8 - Random Forest | 16 Oct - 20 Oct |
-| 9 - XGBoost | 23 Oct -27 Oct |
-| 10 - Early Stopping | 30 Oct - 3 Nov |
-| 11 - XGBoost Hyperparameters| 6 Nov - 10 Nov |
-| 12 - Hyperopt | 13 Nov - 17 Nov |  
-| 13 - Step-wise tuning with Hyperopt | 20 Nov - 24 Nov |  
+| 4 - Tree Creation | 16 Oct - 20 Oct |
+| 5 - Stumps| 23 Oct - 27 Oct |
+| 6 - Model Complexity & Hyperparameters, 7 - Tree Hyperparameters | 30 Oct - 3 Nov |
+| 9 - XGBoost, 10 - Early Stopping | 6 Nov - 10 Nov |
+| 11 - XGBoost Hyperparameters| 13 Nov - 17 Nov |
+| 12 - Hyperopt | 20 Nov - 24 Nov |  
+| 13 - Step-wise tuning with Hyperopt | 27 Nov - 1 Dec |  
 
 Data source: https://www.kaggle.com/competitions/anomaly-detection-in-4g-cellular-networks/overview
