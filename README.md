@@ -10,7 +10,7 @@
 Perform the following seperately:
 1. Exploratory Data Analysis in Jupyter Notebook
 2. End-to-end Machine Learning Pipeline (MLP) in Python Scripts
-3. Simple GUI/web application in Python:
+3. (Optional) Simple GUI/web application in Python:
     - input: file containing test data
     - output: show model evaluation results  
 
