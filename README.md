@@ -37,7 +37,7 @@ Author: Alexey Grigorev
 | Chapter | Time Period |
 |----------|----------|
 | Appendix C, Appendix D, 1, 2 (EDA sections) | 11 Sep - 22 Sep |
-| 3 (EDA sections), 6.1, 6.2 (Decision Trees) | 22 Sep - 6 Oct |
+| 3, 6.1, 6.2 (Decision Trees) | 22 Sep - 6 Oct |
 | 4, 6.3 (Random Forest) | 9 Oct - 13 Oct |
 | 6 | 16 Oct - 17 Nov |
 | 5 (Pickle, Flask/FastAPI + Streamlit) | 20 Nov - 8 Dec |  
