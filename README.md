@@ -1,9 +1,8 @@
 # Anomaly detection in LTE activity
 
 ## Objective
-1. Apply 3 supervised learning models to detect anormalies in LTE activity dataset.
+1. Apply 2 supervised learning models to detect anormalies in LTE activity dataset.
     * Decision Tree
-    * Random Forest
     * XGBoost
 2. Develop a simple GUI/web application to allow user interactivity with trained models. 
 
@@ -28,7 +27,7 @@ In final report & presentation: Provide descriptions:
 2. Appropriate use and optimization of algorithms/models
 3. Explanation for the choice of algorithms/models
 4. Explanation for the choice of evaluation metrics
-    - Compare the 3 trained models using evaluation metrics  
+    - Compare the 2 trained models using evaluation metrics  
 
 ## Suggested Reading
 Book: Machine Learning Bookcamp  
