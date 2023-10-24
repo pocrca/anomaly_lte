@@ -6,9 +6,7 @@ from sklearn.model_selection import train_test_split
 #Removing outlier
 df = pd.read_csv("/workspace/anomaly_lte/data/train.csv", sep = ';')
 
-Q1, Q3 = np.percentile(df.meanUE_UL,[25,75])
-IQR = Q3 - Q1
-df = df[df.meanUE_UL < IQR * 1.5 + Q3]
+df = df[df.meanUE_UL != np.max(df.meanUE_UL)]
 
 #Splitting data
 X = df[df.columns[0:13]]
