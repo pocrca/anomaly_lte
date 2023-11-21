@@ -1,11 +1,11 @@
-# Importing Libraries
+## Importing Libraries
 import numpy as np 
 import pandas as pd 
 import pickle
 import matplotlib.pyplot as plt
 from xgboost import XGBClassifier
-from sklearn.model_selection import StratifiedKFold
-from sklearn.metrics import roc_curve, auc, confusion_matrix
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+import optuna
 
 # Creating DataFrames and removing index created during feature_engineering export
 X_df = pd.read_csv("/workspace/anomaly_lte/data/x_train_processed_ft2.csv")
@@ -14,24 +14,47 @@ Y_df = pd.read_csv("/workspace/anomaly_lte/data/Y_train.csv")
 X_df = X_df.iloc[:,1:]
 Y_df = Y_df.iloc[:,1:]
 
-# Creating DecisionTree Classifiers
-for fold in range(1,6):
-    globals()[f"xgboost_ft2_fold{fold}"] = XGBClassifier(random_state=53)
-
 # Creating Stratified K-Fold
-skf = StratifiedKFold(n_splits=5, shuffle = True, random_state = 53)
+RANDOM_SEED = 53
+stratified_k_fold = StratifiedKFold(n_splits=2, shuffle=True, random_state=RANDOM_SEED)
 
-# Fitting Models
-Fold = 0
+# Creating Objective Function for Optuna
+def xgboost_objective_function(trial):
+    _n_estimators = trial.suggest_int("n_estimators", 50, 1000)
+    _max_depth = trial.suggest_int("max_depth", 5, 500)
+    _learning_rate = trial.suggest_float("learning_rate", 0, 1)
+    _subsample = trial.suggest_float("subsample", 0, 1)
+    _colsample_bytree = trial.suggest_float("colsample_bytree", 0, 1)
+    _colsample_bylevel = trial.suggest_float("colsample_bylevel", 0, 1)
 
-for train_index, test_index in skf.split(X_df, Y_df):
-    Fold += 1
-    X_train, X_test = X_df.iloc[train_index], X_df.iloc[test_index],
-    Y_train, Y_test = Y_df.iloc[train_index], Y_df.iloc[test_index],
-    globals()[f"xgboost_ft2_fold{Fold}"].fit(X_train, Y_train)
-    with open(f'models/train_xgboost_ft2.pkl', 'wb') as model_file:
-        pickle.dump(xgboost_ft2_fold1, model_file)
-        pickle.dump(xgboost_ft2_fold2, model_file)
-        pickle.dump(xgboost_ft2_fold3, model_file)
-        pickle.dump(xgboost_ft2_fold4, model_file)
-        pickle.dump(xgboost_ft2_fold5, model_file)
+    xgboost_classifier = XGBClassifier(
+        n_estimators=_n_estimators,
+        max_depth=_max_depth,
+        learning_rate=_learning_rate,
+        subsample=_subsample,
+        colsample_bytree=_colsample_bytree,
+        colsample_bylevel=_colsample_bylevel,
+        random_state=RANDOM_SEED
+    )
+
+    scores = cross_val_score(
+        xgboost_classifier, X_df, Y_df, cv=stratified_k_fold, scoring='f1'
+    )
+
+    return scores.mean()
+
+# Creating study object for Optuna
+study = optuna.create_study(direction="maximize")
+
+# Optimizing the study
+study.optimize(xgboost_objective_function, n_trials=3) # n_trials set low temporarily
+
+# Fitting best model
+best_parameters = study.best_params
+
+xgboost_ft2 = XGBClassifier(random_state=RANDOM_SEED, **best_parameters)
+xgboost_ft2.fit(X_df, Y_df)
+
+# Exporting model as pickle files
+with open(f'models/train_xgboost_ft2.pkl', 'wb') as model_file:
+    pickle.dump(xgboost_ft2, model_file)
