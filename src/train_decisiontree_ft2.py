@@ -54,6 +54,6 @@ dtree_ft2 = DecisionTreeClassifier(random_state=RANDOM_SEED, **best_parameters)
 dtree_ft2.fit(X_df, Y_df)
 
 # Exporting model as pickle files
-with open(f'models/train_dtree_ft2.pkl', 'wb') as model_file:
+with open('models/train_dtree_ft2.pkl', 'wb') as model_file:
     pickle.dump(dtree_ft2, model_file)
 

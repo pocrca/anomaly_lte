@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from xgboost import XGBClassifier
 from sklearn.model_selection import StratifiedKFold, cross_val_score
 import optuna
+import warnings
 
 # Creating DataFrames and removing index created during feature_engineering export
 X_df = pd.read_csv("/workspace/anomaly_lte/data/x_train_processed_ft1.csv")
@@ -20,15 +21,17 @@ stratified_k_fold = StratifiedKFold(n_splits=2, shuffle=True, random_state=RANDO
 
 # Creating Objective Function for Optuna
 def xgboost_objective_function(trial):
-    _n_estimators = trial.suggest_int("n_estimators", 50, 1000)
+    _n_estimators = trial.suggest_int("n_estimators", 50, 1000),
+    #_early_stopping_rounds = trial.suggest_int("early_stopping_rounds", 2, 49)
     _max_depth = trial.suggest_int("max_depth", 5, 500)
-    _learning_rate = trial.suggest_float("learning_rate", 0, 1)
-    _subsample = trial.suggest_float("subsample", 0, 1)
-    _colsample_bytree = trial.suggest_float("colsample_bytree", 0, 1)
-    _colsample_bylevel = trial.suggest_float("colsample_bylevel", 0, 1)
+    _learning_rate = trial.suggest_float("learning_rate", 0.00001, 0.1, log=True)
+    _subsample = trial.suggest_float("subsample", 0, 1, step=0.1)
+    _colsample_bytree = trial.suggest_float("colsample_bytree", 0, 1, step=0.1)
+    _colsample_bylevel = trial.suggest_float("colsample_bylevel", 0, 1, step=0.1)
 
     xgboost_classifier = XGBClassifier(
         n_estimators=_n_estimators,
+        #early_stopping_rounds=_early_stopping_rounds,
         max_depth=_max_depth,
         learning_rate=_learning_rate,
         subsample=_subsample,
@@ -47,7 +50,7 @@ def xgboost_objective_function(trial):
 study = optuna.create_study(direction="maximize")
 
 # Optimizing the study
-study.optimize(xgboost_objective_function, n_trials=3) # n_trials set low temporarily
+study.optimize(xgboost_objective_function, n_trials=5) 
 
 # Fitting best model
 best_parameters = study.best_params
@@ -56,5 +59,7 @@ xgboost_ft1 = XGBClassifier(random_state=RANDOM_SEED, **best_parameters)
 xgboost_ft1.fit(X_df, Y_df)
 
 # Exporting model as pickle files
-with open(f'models/train_xgboost_ft1.pkl', 'wb') as model_file:
+with open('models/train_xgboost_ft1.pkl', 'wb') as model_file:
     pickle.dump(xgboost_ft1, model_file)
+
+warnings.filterwarnings('ignore')
