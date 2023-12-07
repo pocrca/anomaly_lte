@@ -12,61 +12,28 @@ from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score, f1_score, roc_curve, auc, confusion_matrix, classification_report, precision_recall_curve, PrecisionRecallDisplay, average_precision_score
 import joblib
 
-# Importing decision tree models
+# Importing models
 with open('models/train_dtree_ft2.pkl', 'rb') as model_file:
     dtree = pickle.load(model_file)
 with open('models/train_xgboost_ft2.pkl', 'rb') as model_file:
     xgboost = pickle.load(model_file)
 
-# Creating Dataframes
-X_train = pd.read_csv("/workspace/anomaly_lte/data/X_train.csv")
-
-# Turning time into a datetime type
-X_train['Time'] = pd.to_datetime(X_train['Time'], format = '%H:%M')
-
-
-# Creating new columns for meanUE_UL_encoded and meanUE_DL_encoded (encoding will be done later)
-X_train['meanUE_UL_encoded'] = X_train['meanUE_UL']
-X_train['meanUE_DL_encoded'] = X_train['meanUE_DL']
-
-
-# FunctionTransformer for custom One Hot Encoder for variables MeanUE_UL and MeanUE_DL
+# Defining Feature Engineering functions 
 def zero_encoder(x):
     return (x == 0).astype(int)
-
 Zero_Encoder = FunctionTransformer(zero_encoder)
 
-# FunctionTransformer for encoding time as hours
 def time_encoder(x):
     return np.array(x.iloc[:,0].dt.hour)[:, np.newaxis]
-
 Time_Encoder = FunctionTransformer(time_encoder)
 
-# FunctionTransformer and ColumnTransformer for log transformation 
 def log_transformer(x):
     return np.log(x+10**-10) #Constant added to prevent log 0
-
 Log_Transformer = FunctionTransformer(log_transformer)
 
-# Pipeline for log transformation and standard scaler
-Pipe = Pipeline(steps = [
-    ('log', Log_Transformer),
-    ('scale', StandardScaler())
-])
-
-# Fitting ColumnTranformer for set 2 (with log transformation)
-preprocessor = ColumnTransformer(
-    transformers=[
-        ('encode cell name', OneHotEncoder(), ['CellName']),
-        ('encode time', Time_Encoder, ['Time']),
-        ('encode zero', Zero_Encoder, ['meanUE_UL_encoded', 'meanUE_DL_encoded']),
-        ('log and scale', Pipe, ['PRBUsageUL', 'PRBUsageDL', 'meanThr_DL', 'meanThr_UL', 'maxThr_DL', 'maxThr_UL', 'meanUE_UL', 'meanUE_DL']),
-        ('scale', StandardScaler(), ['maxUE_UL', 'maxUE_DL', 'maxUE_UL+DL'])
-    ],
-    remainder = 'passthrough'
-)
-
-preprocessor.fit(X_train)
+# Importing preprocessor for feature engineering
+with open('preprocessors/preprocessor_set_2', 'rb') as file:
+    preprocessor = pickle.load(file)
 
 # Streamlit configuration
 st.set_page_config(layout="wide")
@@ -79,7 +46,7 @@ with centre_column:
     st.title("Anomaly Detection in LTE Network")
 
     with st.expander('About The Project'):
-        st.write("Traditionally, the design of a cellular network focuses on the optimization of resources that guarantees a smooth operation even during peak hours (i.e. periods with higher traffic load). However, this implies that cells are most of the time overprovisioned of radio resources. Next generation cellular networks ask for a dynamic management and configuration in order to adapt to the varying user demands to utilize frequency resources more efficiently. If the network operator is capable of anticipating to variations in users’ traffic demands, a more efficient management of scarce network resources would be possible.")
+        st.write("Next generation cellular networks ask for a dynamic management and configuration in order to adapt to the varying user demands to utilize frequency resources more efficiently. If the network operator is capable of anticipating to variations in users’ traffic demands, a more efficient management of scarce network resources would be possible.")
         st.write("As such, the project aims to:")
         st.markdown("* Explore the possibilities of ML to detect abnormal behaviors in the utilization of the network that would motivate a change in the configuration of the base station.")
         st.markdown("* Analyze a [dataset](https://www.kaggle.com/competitions/anomaly-detection-in-4g-cellular-networks/overview) (public) of past traces of LTE activity and use it to train an ML model capable of classifying samples of current activity as:")
@@ -87,7 +54,7 @@ with centre_column:
         st.markdown("    - (b) **Unusual** activity, which differs from the behavior usually observed and should trigger a reconfiguration of the base station.")
 
     with st.expander('Project Methodology'):
-        st.image("MLP.JPG", caption="Machine Learning Pipeline", width = 650)
+        st.image("MLP.JPG", caption="Machine Learning Pipeline", width = 570)
         st.write("The two classification models being used in this project are:")
         st.markdown("1. Decision Tree") 
         st.markdown("2. XGBoost (Extreme Gradient Boosting)")
@@ -131,12 +98,6 @@ if uploaded_X_data is not None:
     # Dropping index
     X_df.drop(X_df.columns[[-1]], axis = 1, inplace = True)
 
-    # Setting up SHAP explainer
-    explainer_dtree = shap.TreeExplainer(dtree)
-    explainer_xgboost = shap.TreeExplainer(xgboost)
-    shap_values_dtree = explainer_dtree.shap_values(X_df)
-    shap_values_xgboost = explainer_xgboost.shap_values(X_df)
-
 if uploaded_Y_data is not None:
     Y_df = pd.read_csv(uploaded_Y_data)
 
@@ -176,94 +137,127 @@ if selected_shap or selected_score or selected_roc or selected_prd:
             st.header("Model Evaluation:")
 
 # Showing evaluations for SHAP
-def evaluations_shap(x):
-    fig, ax = plt.subplots()
-    shap.summary_plot(globals()[f"shap_values_{x}"], X_df, plot_type='bar', class_names=['Normal', 'Anomalous'], show=False)
-    ax.tick_params(axis='x',colors="white")
-    ax.tick_params(axis='y',colors="white")
-    ax.xaxis.label.set_color("white")
-    ax.spines['bottom'].set_color("white")
-    ax.spines['left'].set_color("white")
-    ax.set_facecolor('#0e1117')
-    fig.set_facecolor('#0e1117')
-    ax.grid(color='white', alpha = 0.4)
-    legend = ax.legend(fontsize=15, loc = "lower right")
-    st.pyplot(fig)
+def evaluations_shap(model1, model2):
+    if model2 is None:
 
-if selected_shap: 
-    if selected_dtree and selected_xgboost is False:
+        # Setting up SHAP explainer
+        explainer = shap.TreeExplainer(model1)
+        shap_values = explainer.shap_values(X_df)
+
+        # Turning decision tree into unicolor graph (not splitting into classes)
+        if model1 is dtree:
+            shap_values = shap_values[0] * 2
+
         with centre_column:
             st.text("")
             st.subheader("SHAP Tree Explainer Bar Chart")
 
-            evaluations_shap("dtree")
+            # Plotting
+            fig, ax = plt.subplots()
+            shap.summary_plot(shap_values, X_df, plot_type='bar', show=False)
+            ax.tick_params(axis='x',colors="white")
+            ax.tick_params(axis='y',colors="white")
+            ax.xaxis.label.set_color("white")
+            ax.spines['bottom'].set_color("white")
+            ax.spines['left'].set_color("white")
+            ax.set_facecolor('#0e1117')
+            fig.set_facecolor('#0e1117')
+            ax.grid(color='white', alpha = 0.4)
+            legend = ax.legend(fontsize=15, loc = "lower right")
+            st.pyplot(fig)
 
-    elif selected_dtree is False and selected_xgboost:
-        with centre_column:
-            st.text("")
-            st.subheader("SHAP Tree Explainer Bar Chart")
-
-            evaluations_shap("xgboost")
-
-    elif selected_xgboost and selected_dtree:
+    else:
         st.subheader("SHAP Tree Explainer Bar Chart")
+        st.text("")
+
+        # Setting up SHAP explainer
+        explainer_model1 = shap.TreeExplainer(model1)
+        explainer_model2 = shap.TreeExplainer(model2)
+        shap_values_model1 = explainer_model1.shap_values(X_df)
+        shap_values_model2 = explainer_model2.shap_values(X_df)
+
+        # Turning decision tree into unicolor graph (not splitting into classes)
+        shap_values_model1 = shap_values_model1[0] * 2
 
         # Creating two columns
         shap_left_column, shap_right_column = st.columns([1,1])
 
-        st.text("")
+        # Plotting
         with shap_left_column:
             st.markdown("**Decision Tree:**")
-            evaluations_shap("dtree")
+            fig, ax = plt.subplots()
+            shap.summary_plot(shap_values_model1, X_df, plot_type='bar', show=False)
+            ax.tick_params(axis='x',colors="white")
+            ax.tick_params(axis='y',colors="white")
+            ax.xaxis.label.set_color("white")
+            ax.spines['bottom'].set_color("white")
+            ax.spines['left'].set_color("white")
+            ax.set_facecolor('#0e1117')
+            fig.set_facecolor('#0e1117')
+            ax.grid(color='white', alpha = 0.4)
+            legend = ax.legend(fontsize=15, loc = "lower right")
+            st.pyplot(fig)
 
         with shap_right_column:
             st.markdown("**XGBoost:**")
-            evaluations_shap("xgboost")
+            fig, ax = plt.subplots()
+            shap.summary_plot(shap_values_model2, X_df, plot_type='bar', show=False)
+            ax.tick_params(axis='x',colors="white")
+            ax.tick_params(axis='y',colors="white")
+            ax.xaxis.label.set_color("white")
+            ax.spines['bottom'].set_color("white")
+            ax.spines['left'].set_color("white")
+            ax.set_facecolor('#0e1117')
+            fig.set_facecolor('#0e1117')
+            ax.grid(color='white', alpha = 0.4)
+            legend = ax.legend(fontsize=15, loc = "lower right")
+            st.pyplot(fig)
 
-# Showing evaluations for accuracy and F1 score
-def evaluate_score(x):
-    predicted_probability_anomalous = x.predict_proba(X_df)[:,1]
-    predicted_probability_normal = x.predict_proba(X_df)[:,0]
-    predicted_results = x.predict(X_df)
-
-    # Finding and printing score
-    score = accuracy_score(Y_df, predicted_results)
-    st.write(f"Accuracy score: {round(score, 5)}")
-
-    # Finding and printing F1 score
-    f1 = f1_score(Y_df, predicted_results)
-    st.write(f"F1 Score: {round(f1, 5)}")
-
-    # Creating and showing predicted values and probabilities
-    true_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
-    predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
-    predicted_probability_normal = map(lambda x: f"{round(x*100,1)}%", predicted_probability_normal)
-    predicted_probability_anomalous = map(lambda x: f"{round(x*100,1)}%", predicted_probability_anomalous)
-
-    results = {
-        "True Behaviour": true_results,
-        "Predicted Behaviour": predicted_results,
-        "Probability of being normal": predicted_probability_normal,
-        "Probability of being anomalous": predicted_probability_anomalous
-    }
-
-    results_df = pd.DataFrame(results)
-    st.dataframe(results_df)
-
-if selected_score:
+if selected_shap: 
     if selected_dtree and selected_xgboost is False:
-        with centre_column:
-            st.text("")
-            st.subheader("Accuracy and F1 score")
-            evaluate_score(dtree)
+        evaluations_shap(dtree, None)
 
     elif selected_dtree is False and selected_xgboost:
+        evaluations_shap(xgboost, None)
+
+    elif selected_xgboost and selected_dtree:
+        evaluations_shap(dtree, xgboost)
+
+# Showing evaluations for accuracy and F1 score
+def evaluate_score(model1, model2):
+    if model2 is None:
         with centre_column:
             st.text("")
             st.subheader("Accuracy and F1 score")
-            evaluate_score(xgboost)
+            predicted_probability_anomalous = model1.predict_proba(X_df)[:,1]
+            predicted_probability_normal = model1.predict_proba(X_df)[:,0]
+            predicted_results = model1.predict(X_df)
 
-    elif selected_dtree and selected_xgboost:
+            # Finding and printing score
+            score = accuracy_score(Y_df, predicted_results)
+            st.write(f"Accuracy score: {round(score, 5)}")
+
+            # Finding and printing F1 score
+            f1 = f1_score(Y_df, predicted_results)
+            st.write(f"F1 Score: {round(f1, 5)}")
+
+            # Creating and showing predicted values and probabilities
+            true_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
+            predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
+            predicted_probability_normal = map(lambda x: f"{round(x*100,1)}%", predicted_probability_normal)
+            predicted_probability_anomalous = map(lambda x: f"{round(x*100,1)}%", predicted_probability_anomalous)
+
+            results = {
+                "True Behaviour": true_results,
+                "Predicted Behaviour": predicted_results,
+                "Probability of being normal": predicted_probability_normal,
+                "Probability of being anomalous": predicted_probability_anomalous
+            }
+
+            results_df = pd.DataFrame(results)
+            st.dataframe(results_df)
+
+    else:
         st.text("")
         st.subheader("Accuracy and F1 score")
 
@@ -272,48 +266,101 @@ if selected_score:
 
         with score_left_column:
             st.markdown("**Decision Tree:**")
-            evaluate_score(dtree)
+            predicted_probability_anomalous = model1.predict_proba(X_df)[:,1]
+            predicted_probability_normal = model1.predict_proba(X_df)[:,0]
+            predicted_results = model1.predict(X_df)
+
+            # Finding and printing score
+            score = accuracy_score(Y_df, predicted_results)
+            st.write(f"Accuracy score: {round(score, 5)}")
+
+            # Finding and printing F1 score
+            f1 = f1_score(Y_df, predicted_results)
+            st.write(f"F1 Score: {round(f1, 5)}")
+
+            # Creating and showing predicted values and probabilities
+            true_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
+            predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
+            predicted_probability_normal = map(lambda x: f"{round(x*100,1)}%", predicted_probability_normal)
+            predicted_probability_anomalous = map(lambda x: f"{round(x*100,1)}%", predicted_probability_anomalous)
+
+            results = {
+                "True Behaviour": true_results,
+                "Predicted Behaviour": predicted_results,
+                "Probability of being normal": predicted_probability_normal,
+                "Probability of being anomalous": predicted_probability_anomalous
+            }
+
+            results_df = pd.DataFrame(results)
+            st.dataframe(results_df)
+
         with score_right_column:
             st.markdown("**XGBoost:**")
-            evaluate_score(xgboost)
+            predicted_probability_anomalous = model2.predict_proba(X_df)[:,1]
+            predicted_probability_normal = model2.predict_proba(X_df)[:,0]
+            predicted_results = model2.predict(X_df)
 
-# Showing evaluations for ROC
-def evaluate_roc(x):
-    predicted_probability = x.predict_proba(X_df)[:,1]
+            # Finding and printing score
+            score = accuracy_score(Y_df, predicted_results)
+            st.write(f"Accuracy score: {round(score, 5)}")
 
-    false_positive_rate, true_positive_rate, roc_thresholds = roc_curve(Y_df, predicted_probability)
-    roc_auc = auc(false_positive_rate, true_positive_rate)
+            # Finding and printing F1 score
+            f1 = f1_score(Y_df, predicted_results)
+            st.write(f"F1 Score: {round(f1, 5)}")
 
-    # Plotting ROC Curve
-    fig, ax = plt.subplots()
-    ax.plot(false_positive_rate, true_positive_rate, label=f"ROC Curve | AUC = {round(roc_auc,5)}")
-    ax.plot([0,1], [0,1], linestyle='--', label="Baseline")
-    ax.set_xlabel("False Positive Rate", color='white')
-    ax.set_ylabel("True Positive Rate", color='white')
-    ax.grid(color='white', alpha=0.4)
-    ax.tick_params(axis='x',colors="white")
-    ax.tick_params(axis='y',colors="white")
-    ax.spines['bottom'].set_color("white")
-    ax.spines['left'].set_color("white")
-    ax.set_facecolor('#0e1117')
-    fig.set_facecolor('#0e1117')
-    legend = ax.legend(fontsize=10, loc="lower right")
-    st.pyplot(fig)
+            # Creating and showing predicted values and probabilities
+            true_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
+            predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
+            predicted_probability_normal = map(lambda x: f"{round(x*100,1)}%", predicted_probability_normal)
+            predicted_probability_anomalous = map(lambda x: f"{round(x*100,1)}%", predicted_probability_anomalous)
 
-if selected_roc:
+            results = {
+                "True Behaviour": true_results,
+                "Predicted Behaviour": predicted_results,
+                "Probability of being normal": predicted_probability_normal,
+                "Probability of being anomalous": predicted_probability_anomalous
+            }
+
+            results_df = pd.DataFrame(results)
+            st.dataframe(results_df)
+
+if selected_score:
     if selected_dtree and selected_xgboost is False:
-        with centre_column:
-            st.text("")
-            st.subheader("ROC (Receiver Operating Characteristic) Curve")
-            evaluate_roc(dtree)
+        evaluate_score(dtree, None)
 
     elif selected_dtree is False and selected_xgboost:
+        evaluate_score(xgboost, None)
+
+    elif selected_dtree and selected_xgboost:
+        evaluate_score(dtree, xgboost)
+
+# Showing evaluations for ROC
+def evaluate_roc(model1, model2):
+    if model2 is None:
         with centre_column:
             st.text("")
             st.subheader("ROC (Receiver Operating Characteristic) Curve")
-            evaluate_roc(xgboost)
+            predicted_probability = model1.predict_proba(X_df)[:,1]
 
-    elif selected_dtree and selected_xgboost:   
+            false_positive_rate, true_positive_rate, roc_thresholds = roc_curve(Y_df, predicted_probability)
+            roc_auc = auc(false_positive_rate, true_positive_rate)
+
+            # Plotting ROC Curve
+            fig, ax = plt.subplots()
+            ax.plot(false_positive_rate, true_positive_rate, label=f"ROC Curve | AUC = {round(roc_auc,5)}")
+            ax.plot([0,1], [0,1], linestyle='--', label="Baseline")
+            ax.set_xlabel("False Positive Rate", color='white')
+            ax.set_ylabel("True Positive Rate", color='white')
+            ax.grid(color='white', alpha=0.4)
+            ax.tick_params(axis='x',colors="white")
+            ax.tick_params(axis='y',colors="white")
+            ax.spines['bottom'].set_color("white")
+            ax.spines['left'].set_color("white")
+            ax.set_facecolor('#0e1117')
+            fig.set_facecolor('#0e1117')
+            legend = ax.legend(fontsize=10, loc="lower right")
+            st.pyplot(fig)
+    else:
         # Creating columns
         roc_left_column, roc_centre_column, roc_right_column = st.columns([1,6,1])
 
@@ -322,8 +369,8 @@ if selected_roc:
             st.subheader("ROC (Receiver Operating Characteristic) Curve")
 
             # Plotting ROC Curve with two lines
-            predicted_probability_dtree = dtree.predict_proba(X_df)[:,1]
-            predicted_probability_xgboost = xgboost.predict_proba(X_df)[:,1]
+            predicted_probability_dtree = model1.predict_proba(X_df)[:,1]
+            predicted_probability_xgboost = model2.predict_proba(X_df)[:,1]
 
             false_positive_rate_dtree, true_positive_rate_dtree, roc_thresholds_dtree = roc_curve(Y_df, predicted_probability_dtree)
             false_positive_rate_xgboost, true_positive_rate_xgboost, roc_thresholds_xgboost = roc_curve(Y_df, predicted_probability_xgboost)
@@ -346,58 +393,59 @@ if selected_roc:
             legend = ax.legend(fontsize=10, loc="lower right")
             st.pyplot(fig)
 
-# Showing evaluations for PRD
-def evaluate_prd(x):
-    predicted_probability = x.predict_proba(X_df)[:,1]
 
-    # Getting PRD and AUC
-    precision, recall, prd_threshold = precision_recall_curve(Y_df, predicted_probability)
-    prd_auc = average_precision_score(Y_df, predicted_probability)
-
-    # Plotting Precision Recall Display
-    fig, ax = plt.subplots()
-    ax.plot(recall, precision, label = f"PRD Curve | AUC = {round(prd_auc,5)}")
-    ax.set_xlabel("Recall", color = "white")
-    ax.set_ylabel("Precision", color = "white")
-    ax.tick_params(axis='x',colors="white")
-    ax.tick_params(axis='y',colors="white")
-    ax.spines['bottom'].set_color("white")
-    ax.spines['left'].set_color("white")
-    ax.set_facecolor('#0e1117')
-    fig.set_facecolor('#0e1117')
-    ax.set_ylim(-0.1,1.1)
-    ax.grid(color='white', alpha = 0.4)
-    legend = ax.legend(fontsize=10, loc = "lower right")
-    st.pyplot(fig)
-
-if selected_prd:
+if selected_roc:
     if selected_dtree and selected_xgboost is False:
+        evaluate_roc(dtree, None)
+
+    elif selected_dtree is False and selected_xgboost:
+        evaluate_roc(xgboost, None)
+
+    elif selected_dtree and selected_xgboost:   
+        evaluate_roc(dtree, xgboost)
+       
+# Showing evaluations for PRD
+def evaluate_prd(model1, model2):
+    if model2 is None:
         with centre_column:
             st.text("")
             st.subheader("PRD (Precision Recall Display) Curve")
-            evaluate_prd(dtree)
+            predicted_probability = model1.predict_proba(X_df)[:,1]
 
-    if selected_dtree is False and selected_xgboost:
-        with centre_column:
-            st.text("")
-            st.subheader("PRD (Precision Recall Display) Curve")
-            evaluate_prd(xgboost)
+            # Getting PRD and AUC
+            precision, recall, prd_threshold = precision_recall_curve(Y_df, predicted_probability)
+            prd_auc = average_precision_score(Y_df, predicted_probability)
 
-    if selected_dtree and selected_xgboost:
+            # Plotting Precision Recall Display
+            fig, ax = plt.subplots()
+            ax.plot(recall, precision, label = f"PRD Curve | AUC = {round(prd_auc,5)}")
+            ax.set_xlabel("Recall", color = "white")
+            ax.set_ylabel("Precision", color = "white")
+            ax.tick_params(axis='x',colors="white")
+            ax.tick_params(axis='y',colors="white")
+            ax.spines['bottom'].set_color("white")
+            ax.spines['left'].set_color("white")
+            ax.set_facecolor('#0e1117')
+            fig.set_facecolor('#0e1117')
+            ax.set_ylim(-0.1,1.1)
+            ax.grid(color='white', alpha = 0.4)
+            legend = ax.legend(fontsize=10, loc = "lower right")
+            st.pyplot(fig)
+    else:
         # Creating columns
         prd_left_column, prd_centre_column, prd_right_column = st.columns([1,6,1])
 
         with prd_centre_column:
             st.text("")
             st.subheader("PRD (Precision Recall Display) Curve")
-            predicted_probability_dtree = dtree.predict_proba(X_df)[:,1]
-            predicted_probability_xgboost = xgboost.predict_proba(X_df)[:,1]
+            predicted_probability_model1 = model1.predict_proba(X_df)[:,1]
+            predicted_probability_model2 = model2.predict_proba(X_df)[:,1]
 
             # Getting PRD and AUC
-            precision_dtree, recall_dtree, prd_threshold_dtree = precision_recall_curve(Y_df, predicted_probability_dtree)
-            precision_xgboost, recall_xgboost, prd_threshold_xgboost = precision_recall_curve(Y_df, predicted_probability_xgboost)
-            prd_auc_dtree = average_precision_score(Y_df, predicted_probability_dtree)
-            prd_auc_xgboost = average_precision_score(Y_df, predicted_probability_xgboost)
+            precision_dtree, recall_dtree, prd_threshold_dtree = precision_recall_curve(Y_df, predicted_probability_model1)
+            precision_xgboost, recall_xgboost, prd_threshold_xgboost = precision_recall_curve(Y_df, predicted_probability_model2)
+            prd_auc_dtree = average_precision_score(Y_df, predicted_probability_model1)
+            prd_auc_xgboost = average_precision_score(Y_df, predicted_probability_model2)
 
             # Plotting Precision Recall Display
             fig, ax = plt.subplots()
@@ -415,3 +463,15 @@ if selected_prd:
             ax.grid(color='white', alpha=0.4)
             legend = ax.legend(fontsize=10, loc="lower right")
             st.pyplot(fig)
+
+
+if selected_prd:
+    if selected_dtree and selected_xgboost is False:
+        evaluate_prd(dtree, None)
+
+    if selected_dtree is False and selected_xgboost:
+        evaluate_prd(xgboost, None)
+
+    if selected_dtree and selected_xgboost:
+        evaluate_prd(dtree, xgboost)
+        

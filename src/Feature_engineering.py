@@ -1,4 +1,5 @@
 # Importing Libraries
+import pickle
 import numpy as np
 import pandas as pd 
 from sklearn.preprocessing import StandardScaler, OrdinalEncoder, OneHotEncoder, FunctionTransformer
@@ -46,7 +47,7 @@ Pipe = Pipeline(steps = [
 ])
 
 # Fitting ColumnTransformer for set 1 (no log transformation)
-Preprocesser_set_1 = ColumnTransformer(
+preprocessor_set_1 = ColumnTransformer(
     transformers=[
         ('encode cell name', OneHotEncoder(), ['CellName']),
         ('encode time', Time_Encoder, ['Time']),
@@ -57,10 +58,10 @@ Preprocesser_set_1 = ColumnTransformer(
     remainder = 'passthrough'
 )
 
-Preprocesser_set_1.fit(X_train)
+preprocessor_set_1.fit(X_train)
 
 # Fitting ColumnTranformer for set 2 (with log transformation)
-Preprocesser_set_2 = ColumnTransformer(
+preprocessor_set_2 = ColumnTransformer(
     transformers=[
         ('encode cell name', OneHotEncoder(), ['CellName']),
         ('encode time', Time_Encoder, ['Time']),
@@ -71,13 +72,13 @@ Preprocesser_set_2 = ColumnTransformer(
     remainder = 'passthrough'
 )
 
-Preprocesser_set_2.fit(X_train)
+preprocessor_set_2.fit(X_train)
 
 # Transforming Data
-x_train_processed_ft1 = Preprocesser_set_1.transform(X_train)
-x_test_processed_ft1 = Preprocesser_set_1.transform(X_test)
-x_train_processed_ft2 = Preprocesser_set_2.transform(X_train)
-x_test_processed_ft2 = Preprocesser_set_2.transform(X_test)
+x_train_processed_ft1 = preprocessor_set_1.transform(X_train)
+x_test_processed_ft1 = preprocessor_set_1.transform(X_test)
+x_train_processed_ft2 = preprocessor_set_2.transform(X_train)
+x_test_processed_ft2 = preprocessor_set_2.transform(X_test)
 
 # Creating new DataFrames
 x_train_processed_ft1 = pd.DataFrame(x_train_processed_ft1)
@@ -116,3 +117,9 @@ x_train_processed_ft1.to_csv('data/x_train_processed_ft1.csv')
 x_test_processed_ft1.to_csv('data/x_test_processed_ft1.csv')
 x_train_processed_ft2.to_csv('data/x_train_processed_ft2.csv')
 x_test_processed_ft2.to_csv('data/x_test_processed_ft2.csv')
+
+# Exporting preprocessors 
+with open('preprocessors/preprocessor_set_1', 'wb') as file:
+    pickle.dump(preprocessor_set_1, file)
+with open('preprocessors/preprocessor_set_2', 'wb') as file:
+    pickle.dump(preprocessor_set_2, file)
