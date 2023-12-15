@@ -96,10 +96,10 @@ for i in X_train.CellName:
 Columns = []
 
 for i in Cells:
-    Columns.append(f"CellName_{i}") # Creates column names for CellName One hot Encoding columns
+    Columns.append(f"Cell ID: {i}") # Creates column names for CellName One hot Encoding columns
 
-Columns = Columns + ['Time', 'meanUE_UL_encoded', 'meanUE_DL_encoded', 'PRBUsageUL', 'PRBUsageDL', 'meanThr_DL', 'meanThr_UL', 'maxThr_DL', 'maxThr_UL', 'meanUE_DL', 'meanUE_UL',
-'maxUE_DL', 'maxUE_UL', 'maxUE_UL+DL', 'Outdated_Index'] 
+Columns = Columns + ['Time', 'Mean UE devices encoded (uplink)', 'Mean UE devices encoded (downlink)', 'Percentage of PRB usage (uplink)', 'Percentage of PRB usage (downlink)', 'Mean carried traffic (downlink)', 'Mean carried traffic (uplink)', 'Max carried traffic (downlink)', 'Max carried traffic (uplink)', 'Mean UE devices (downlink)', 'Mean UE devices (uplink)',
+'Max UE devices (downlink)', 'Max UE devices (uplink)', 'Max UE devices (uplink and downlink)', 'Outdated_Index'] 
 
 x_train_processed_ft1.columns = Columns
 x_test_processed_ft1.columns = Columns
@@ -111,6 +111,12 @@ x_train_processed_ft1.drop(x_train_processed_ft1.columns[[-1]], axis = 1, inplac
 x_test_processed_ft1.drop(x_test_processed_ft1.columns[[-1]], axis = 1, inplace = True)
 x_train_processed_ft2.drop(x_train_processed_ft2.columns[[-1]], axis = 1, inplace = True)
 x_test_processed_ft2.drop(x_test_processed_ft2.columns[[-1]], axis = 1, inplace = True)
+
+# Removing maxUE_UL, maxUE_UL+DL, Time (insignificant features)
+x_train_processed_ft1 = x_train_processed_ft1.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
+x_test_processed_ft1 = x_test_processed_ft1.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
+x_train_processed_ft2 = x_train_processed_ft2.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
+x_test_processed_ft2 = x_test_processed_ft2.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
 
 # Exporting to csv files
 x_train_processed_ft1.to_csv('data/x_train_processed_ft1.csv')

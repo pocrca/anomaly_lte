@@ -1,4 +1,4 @@
-## Importing Libraries
+# Importing Libraries
 import numpy as np 
 import pandas as pd 
 import pickle
@@ -16,17 +16,17 @@ Y_df = Y_df.iloc[:,1:]
 
 # Creating Stratified K-Fold
 RANDOM_SEED = 53
-stratified_k_fold = StratifiedKFold(n_splits=2, shuffle=True, random_state=RANDOM_SEED)
+stratified_k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=RANDOM_SEED)
 
 # Creating Objective Function for Optuna
 def xgboost_objective_function(trial):
     _n_estimators = trial.suggest_int("n_estimators", 50, 1000)
     #_early_stopping_rounds = trial.suggest_int("early_stopping_rounds", 2, 50)
     _max_depth = trial.suggest_int("max_depth", 5, 500)
-    _learning_rate = trial.suggest_float("learning_rate", 0.00001, 0.1, log=True)
-    _subsample = trial.suggest_float("subsample", 0, 1, step=0.1)
-    _colsample_bytree = trial.suggest_float("colsample_bytree", 0, 1, step=0.1)
-    _colsample_bylevel = trial.suggest_float("colsample_bylevel", 0, 1, step=0.1)
+    _learning_rate = trial.suggest_float("learning_rate", 0.00001, 0.1)
+    _subsample = trial.suggest_float("subsample", 0, 1)
+    _colsample_bytree = trial.suggest_float("colsample_bytree", 0, 1)
+    _colsample_bylevel = trial.suggest_float("colsample_bylevel", 0, 1)
 
     xgboost_classifier = XGBClassifier(
         n_estimators=_n_estimators,

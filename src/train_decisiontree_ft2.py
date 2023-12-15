@@ -45,7 +45,7 @@ def decision_tree_objective_function(trial):
 study = optuna.create_study(direction="maximize")
 
 # Optimizing the study
-study.optimize(decision_tree_objective_function, n_trials=100) # n_trials set low temporarily
+study.optimize(decision_tree_objective_function, n_trials=100) 
 
 # Fitting best model
 best_parameters = study.best_params

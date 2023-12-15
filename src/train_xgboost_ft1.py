@@ -17,7 +17,7 @@ Y_df = Y_df.iloc[:,1:]
 
 # Creating Stratified K-Fold
 RANDOM_SEED = 53
-stratified_k_fold = StratifiedKFold(n_splits=2, shuffle=True, random_state=RANDOM_SEED)
+stratified_k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=RANDOM_SEED)
 
 # Creating Objective Function for Optuna
 def xgboost_objective_function(trial):
