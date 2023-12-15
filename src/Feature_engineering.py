@@ -113,10 +113,10 @@ x_train_processed_ft2.drop(x_train_processed_ft2.columns[[-1]], axis = 1, inplac
 x_test_processed_ft2.drop(x_test_processed_ft2.columns[[-1]], axis = 1, inplace = True)
 
 # Removing maxUE_UL, maxUE_UL+DL, Time (insignificant features)
-x_train_processed_ft1 = x_train_processed_ft1.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
-x_test_processed_ft1 = x_test_processed_ft1.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
-x_train_processed_ft2 = x_train_processed_ft2.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
-x_test_processed_ft2 = x_test_processed_ft2.drop(["Max UE Devices (uplink)", "Max UE Devices (uplink and downlink)", "Time"], axis=1)
+x_train_processed_ft1 = x_train_processed_ft1.drop(["Max UE devices (uplink)", "Max UE devices (uplink and downlink)", "Time"], axis=1)
+x_test_processed_ft1 = x_test_processed_ft1.drop(["Max UE devices (uplink)", "Max UE devices (uplink and downlink)", "Time"], axis=1)
+x_train_processed_ft2 = x_train_processed_ft2.drop(["Max UE devices (uplink)", "Max UE devices (uplink and downlink)", "Time"], axis=1)
+x_test_processed_ft2 = x_test_processed_ft2.drop(["Max UE devices (uplink)", "Max UE devices (uplink and downlink)", "Time"], axis=1)
 
 # Exporting to csv files
 x_train_processed_ft1.to_csv('data/x_train_processed_ft1.csv')

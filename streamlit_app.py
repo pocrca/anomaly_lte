@@ -10,7 +10,6 @@ from sklearn.preprocessing import StandardScaler, OrdinalEncoder, OneHotEncoder,
 from sklearn.pipeline import Pipeline 
 from sklearn.compose import ColumnTransformer
 from sklearn.metrics import accuracy_score, f1_score, roc_curve, auc, confusion_matrix, classification_report, precision_recall_curve, PrecisionRecallDisplay, average_precision_score
-import joblib
 
 # Importing models
 with open('models/train_dtree_ft2.pkl', 'rb') as model_file:

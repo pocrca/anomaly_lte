@@ -8,3 +8,6 @@ streamlit
 dill
 xgboost
 hyperopt
+shap
+optuna
+streamlit_shap
