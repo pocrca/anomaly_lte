@@ -18,6 +18,9 @@ Y_df = Y_df.iloc[:,1:]
 RANDOM_SEED = 53
 stratified_k_fold = StratifiedKFold(n_splits=10, shuffle=True, random_state=RANDOM_SEED)
 
+# Setting random seed for optuna study 
+sampler = optuna.samplers.TPESampler(seed=RANDOM_SEED)
+
 # Creating Objective Function for Optuna
 def decision_tree_objective_function(trial):
     _max_depth = trial.suggest_int("max_depth", 5, 500)
@@ -42,7 +45,7 @@ def decision_tree_objective_function(trial):
     return scores.mean()
 
 # Creating study object for Optuna
-study = optuna.create_study(direction="maximize")
+study = optuna.create_study(direction="maximize", sampler=sampler)
 
 # Optimizing the study
 study.optimize(decision_tree_objective_function, n_trials=100) 
