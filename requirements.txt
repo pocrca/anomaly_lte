@@ -11,3 +11,4 @@ hyperopt
 shap
 optuna
 streamlit_shap
+streamlit_pills
