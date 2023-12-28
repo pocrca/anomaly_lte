@@ -37,24 +37,26 @@ with sidebar_left_column:
     st.image("images/exploration.png")
 with sidebar_right_column:
     st.header("Anomaly Detection in LTE Network")
+
 st.sidebar.divider()
 st.sidebar.subheader("About")
 st.sidebar.markdown("This app acts as an interface to access two machine learning models created to predict radio cell behaviour. It also facilitates the evaluation of these models. ")
 st.sidebar.subheader("References")
 st.sidebar.markdown("Images used from [Flaticon](https://www.flaticon.com/free-icons/detection). Emojis and icons used from [Emojipedia](https://emojipedia.org/).")
 st.sidebar.divider()
-st.sidebar.markdown("This app was made for Research@YDSP 2023, the project poster and report can be accessed at the [official DSTA website.](https://www.dsta.gov.sg/ydsp/projects/)")
+st.sidebar.caption("This app was made for Research@YDSP 2023, the project poster and report can be accessed at the [official DSTA website.](https://www.dsta.gov.sg/ydsp/projects/)")
 st.sidebar.divider()
 
 # Creating columns to centralize title
-title_first_column, title_second_column, title_third_column, title_fourth_column = st.columns([0.2, 1, 0.01, 2.8])
+title_left_column, title_right_column = st.columns([1, 3.5])
 
 # Creating main title, brief description and navigation bar
-with title_second_column:
-    st.image("images/detection1.png", width=130)
+with title_left_column:
+    st.image("images/detection1.png", width=140)
 
-with title_fourth_column:
+with title_right_column:
     st.title("Anomaly Detection in LTE Network")
+    st.caption("This app predicts radio cell behaviour using ML and evaluates predictive performance")
 
 main_tab, telemetry_data_tab, info_tab = st.tabs(["Main", "Telemetry Data", "Info"])
 
@@ -246,10 +248,10 @@ with main_tab:
             predicted_probability = map(lambda x: f"{round(x*100,1)}%" if x > 0.5 else f"{round((1-x)*100)}%", predicted_probability_anomalous)
                 
             if uploaded_Y_data is not None:
-                actual_results = map(lambda x: "Normal" if x == 0 else "Anomalous", Y_df["Unusual"])
+                actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
                 results = {
-                    "Predicted Behaviour": predicted_results,
                     "Actual Behaviour": actual_results,
+                    "Predicted Behaviour": predicted_results,
                     "Predicted Probability": predicted_probability
                 }
                
@@ -280,10 +282,10 @@ with main_tab:
                 predicted_probability = map(lambda x: f"{round(x*100,1)}%" if x > 0.5 else f"{round((1-x)*100)}%", predicted_probability_anomalous)
                 
                 if uploaded_Y_data is not None:
-                    actual_results = map(lambda x: "Normal" if x == 0 else "Anomalous", Y_df["Unusual"])
+                    actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
                     results = {
-                        "Predicted Behaviour": predicted_results,
                         "Actual Behaviour": actual_results,
+                        "Predicted Behaviour": predicted_results,
                         "Predicted Probability": predicted_probability
                     }
                 
@@ -307,10 +309,10 @@ with main_tab:
                 predicted_probability = map(lambda x: f"{round(x*100,1)}%" if x > 0.5 else f"{round((1-x)*100)}%", predicted_probability_anomalous)
                 
                 if uploaded_Y_data is not None:
-                    actual_results = map(lambda x: "Normal" if x == 0 else "Anomalous", Y_df["Unusual"])
+                    actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
                     results = {
-                        "Predicted Behaviour": predicted_results,
                         "Actual Behaviour": actual_results,
+                        "Predicted Behaviour": predicted_results,
                         "Predicted Probability": predicted_probability
                     }
                 
@@ -461,14 +463,8 @@ with main_tab:
         else:
             st.subheader("Accuracy and F1 Score")
 
-            # Creating two columns
-            score_title_left_column, score_title_right_column = st.columns([1,1])
-
             # Creating four columns
             score_first_column, score_second_column, score_third_column, score_fourth_column = st.columns([1,1,1,1])
-
-            with score_title_left_column:
-                st.markdown("**Decision Tree:**")
                 
             predicted_probability_anomalous = model1.predict_proba(X_df)[:,1]
             predicted_probability_normal = model1.predict_proba(X_df)[:,0]
@@ -477,15 +473,15 @@ with main_tab:
             # Finding and printing score
             model1_score = accuracy_score(Y_df, predicted_results)
             with score_first_column:
+                st.markdown("**Decision Tree:**")
                 st.metric("Accuracy", round(model1_score, 5))
 
             # Finding and printing F1 score
             model1_f1 = f1_score(Y_df, predicted_results)
             with score_second_column:
+                st.markdown("###")
+                st.markdown(" ")
                 st.metric("F1 Score", round(model1_f1, 5))
-
-            with score_title_right_column:
-                st.markdown("**XGBoost:**")
 
             predicted_probability_anomalous = model2.predict_proba(X_df)[:,1]
             predicted_probability_normal = model2.predict_proba(X_df)[:,0]
@@ -494,11 +490,14 @@ with main_tab:
             # Finding and printing score
             model2_score = accuracy_score(Y_df, predicted_results)
             with score_third_column:
+                st.markdown("**XGBoost:**")
                 st.metric("Accuracy", round(model2_score, 5), delta=round(model2_score-model1_score,5))
 
             # Finding and printing F1 score
             model2_f1 = f1_score(Y_df, predicted_results)
             with score_fourth_column:
+                st.markdown("###")
+                st.markdown(" ")
                 st.metric("F1 Score", round(model2_f1, 5), delta=round(model2_f1-model1_f1,5))
 
             st.divider()
@@ -734,13 +733,12 @@ with info_tab:
     st.write("Next generation 4G and 5G cellular networks ask for a more efficient and dynamic management of the scarce and expensive radio resources. Network operators must be therefore be capable of anticipating to variations in users’ traffic demands.")
     st.write("As such, the project aims to:")
     st.markdown("1. Explore the possibilities of ML to detect abnormal behaviors in the utilization of the network")
-    st.markdown("2. Analyze a [dataset](https://www.kaggle.com/competitions/anomaly-detection-in-4g-cellular-networks/overview) of a past 4G LTE deployment and use it to train two ML models capable of classifying samples of current activity as:")
-    st.markdown("* (a) **Normal** activity, corresponding to behaviour of any day at that time, therefore, no re-configuration or redistribution of resources is needed.")
-    st.markdown("* (b) **Unusual** activity, which differs from the behavior usually observed at that time of day and should trigger a reconfiguration of the base station.")
-    st.markdown("3. Develop an app that acts as an interface for users to utilise the ML models to create predictions and evaluate the performance of the models")
-
+    st.markdown("2. Analyze a [dataset](https://www.kaggle.com/competitions/anomaly-detection-in-4g-cellular-networks/overview) of a past 4G LTE deployment and use it to train two ML models classifying radio cell behaviour as:")
+    st.markdown("* (a) **Normal**, corresponding to behaviour of any day at that time")
+    st.markdown("* (b) **Anomalous**, which differs from the behavior usually observed at that time of day and should trigger a reconfiguration of the base station.")
+    
+    #st.divider()
     st.subheader('⚙️ Project Methodology')
-    st.image("images/MLP.png", caption="Machine Learning Pipeline")
     st.write("The two supervised classification models being used in this project are:")
     st.markdown("1. [Decision Tree](https://scikit-learn.org/stable/modules/tree.html) model") 
     st.markdown("2. [XGBoost](https://xgboost.readthedocs.io/en/latest/index.html) (eXtreme Gradient Boosting) model")
