@@ -62,6 +62,9 @@ main_tab, telemetry_data_tab, info_tab = st.tabs(["Main", "Telemetry Data", "Inf
 
 # "Main" tab 
 with main_tab:
+
+    st.toast("This app is mobile-compatible but **landscape** is recommended", icon="📱")
+
     predictor_file_error = False
     outcome_file_error = False
     st.write("")
