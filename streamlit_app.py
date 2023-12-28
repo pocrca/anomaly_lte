@@ -75,63 +75,64 @@ main_tab, telemetry_data_tab, info_tab = st.tabs(["Main", "Telemetry Data", "Inf
 
 # "Main" tab 
 with main_tab:
-    predictor_file_error = False
-    outcome_file_error = False
+    input_file_error = False
     st.write("")
     st.subheader("1️⃣ Input Telemetry Data")
-    uploaded_X_data = st.file_uploader("Input predictor features")
-    uploaded_Y_data = st.file_uploader("Input outcome feature / result")
+    uploaded_data = st.file_uploader("Input CSV file")
 
     # Creates and processes dataframes if files are input
-    if uploaded_X_data is not None:
-        X_df_raw = pd.read_csv(uploaded_X_data)
+    if uploaded_data is not None:
+        df_raw = pd.read_csv(uploaded_data)
 
-        # Feature engineering preprocessor
-        # Defining Feature Engineering functions 
-        def zero_encoder(x):
-            return (x == 0).astype(int)
-        Zero_Encoder = FunctionTransformer(zero_encoder)
+        if 1==1:
+            X_df_raw = df_raw.iloc[:, df_raw.columns != "Unusual"]
+            Y_df = df_raw["Unusual"]
 
-        def time_encoder(x):
-            return np.array(x.iloc[:,0].dt.hour)[:, np.newaxis]
-        Time_Encoder = FunctionTransformer(time_encoder)
+            # Feature engineering preprocessor
+            # Defining Feature Engineering functions 
+            def zero_encoder(x):
+                return (x == 0).astype(int)
+            Zero_Encoder = FunctionTransformer(zero_encoder)
 
-        def log_transformer(x):
-            return np.log(x+10**-10) #Constant added to prevent log 0
-        Log_Transformer = FunctionTransformer(log_transformer)
+            def time_encoder(x):
+                return np.array(x.iloc[:,0].dt.hour)[:, np.newaxis]
+            Time_Encoder = FunctionTransformer(time_encoder)
 
-        # Pipeline for log transformation and standard scaler
-        Pipe = Pipeline(steps = [
-            ('log', Log_Transformer),
-            ('scale', StandardScaler())
-        ])
+            def log_transformer(x):
+                return np.log(x+10**-10) #Constant added to prevent log 0
+            Log_Transformer = FunctionTransformer(log_transformer)
 
-        # Creating Dataframes
-        X_train = pd.read_csv("data/X_train.csv")
-        Y_train = pd.read_csv("data/Y_train.csv")
+            # Pipeline for log transformation and standard scaler
+            Pipe = Pipeline(steps = [
+                ('log', Log_Transformer),
+                ('scale', StandardScaler())
+            ])
 
-        # Turning time into a datetime type
-        X_train['Time'] = pd.to_datetime(X_train['Time'], format = '%H:%M')
+            # Creating Dataframes
+            X_train = pd.read_csv("data/X_train.csv")
+            Y_train = pd.read_csv("data/Y_train.csv")
 
-        # Creating new columns for meanUE_UL_encoded and meanUE_DL_encoded (encoding will be done later)
-        X_train['meanUE_UL_encoded'] = X_train['meanUE_UL']
-        X_train['meanUE_DL_encoded'] = X_train['meanUE_DL']
+            # Turning time into a datetime type
+            X_train['Time'] = pd.to_datetime(X_train['Time'], format = '%H:%M')
 
-        # Fitting ColumnTranformer for set 2 (with log transformation)
-        preprocessor = ColumnTransformer(
-            transformers=[
-                ('encode cell name', OneHotEncoder(), ['CellName']),
-                ('encode time', Time_Encoder, ['Time']),
-                ('encode zero', Zero_Encoder, ['meanUE_UL_encoded', 'meanUE_DL_encoded']),
-                ('log and scale', Pipe, ['PRBUsageUL', 'PRBUsageDL', 'meanThr_DL', 'meanThr_UL', 'maxThr_DL', 'maxThr_UL', 'meanUE_UL', 'meanUE_DL']),
-                ('scale', StandardScaler(), ['maxUE_UL', 'maxUE_DL', 'maxUE_UL+DL'])
-            ],
-            remainder = 'passthrough'
-        )
+            # Creating new columns for meanUE_UL_encoded and meanUE_DL_encoded (encoding will be done later)
+            X_train['meanUE_UL_encoded'] = X_train['meanUE_UL']
+            X_train['meanUE_DL_encoded'] = X_train['meanUE_DL']
 
-        preprocessor.fit(X_train)
+            # Fitting ColumnTranformer for set 2 (with log transformation)
+            preprocessor = ColumnTransformer(
+                transformers=[
+                    ('encode cell name', OneHotEncoder(), ['CellName']),
+                    ('encode time', Time_Encoder, ['Time']),
+                    ('encode zero', Zero_Encoder, ['meanUE_UL_encoded', 'meanUE_DL_encoded']),
+                    ('log and scale', Pipe, ['PRBUsageUL', 'PRBUsageDL', 'meanThr_DL', 'meanThr_UL', 'maxThr_DL', 'maxThr_UL', 'meanUE_UL', 'meanUE_DL']),
+                    ('scale', StandardScaler(), ['maxUE_UL', 'maxUE_DL', 'maxUE_UL+DL'])
+                ],
+                remainder = 'passthrough'
+            )
+
+            preprocessor.fit(X_train)
         
-        try:
             # Adding Index
             X_df_raw.insert(0, 'Unnamed: 0', np.arange(0, X_df_raw.shape[0], 1))
 
@@ -168,57 +169,19 @@ with main_tab:
             # Removing maxUE_UL, maxUE_UL+DL, Time (insignificant features)
             X_df = X_df.drop(["Max UE devices (uplink)", "Max UE devices (uplink and downlink)", "Time"], axis=1)
 
-            predictor_file_error = False
+            input_file_error = False
 
-        except:
-            st.error("Error: Predictor features file incompatible, did you mean to input the outcome feature file?")
-            predictor_file_error = True
+        #except:
+            #st.error('Error: File incompatible, suitable files can be accessed from the "Telemetry Data" tab')
+            #input_file_error = True
 
-    else:
-        pass
-
-    if uploaded_Y_data is not None:
-        Y_df = pd.read_csv(uploaded_Y_data)
-        if Y_df.shape[1] > 1:
-            st.error("Error: Outcome feature file incompatible, did you mean to input the predictor feature file?")
-            outcome_file_error = True
-        else:
-            outcome_file_error = False
     else:
         pass
 
     # Creating second part of "Main" tab (Model Results)
     selected_evaluation = ""
 
-    if uploaded_X_data is not None and uploaded_Y_data is not None and predictor_file_error is False and outcome_file_error is False:
-        if X_df.shape[0] != Y_df.shape[0]: # Error message to check that files have same length
-            st.error("Error: Files do not have same length")
-        else:
-            st.subheader('2️⃣ Model Results')
-
-            with st.container(border=True):
-                st.markdown("**Selected Machine Learning Model:**")
-
-                # Creating columns for checkboxes
-                checkbox_left_column, checkbox_right_column = st.columns([1,1])
-
-                with checkbox_left_column:
-                    selected_dtree = st.checkbox("Decision Tree")
-                with checkbox_right_column:
-                    selected_xgboost = st.checkbox("XGBoost")
-
-                if selected_dtree or selected_xgboost:
-                    st.write("")
-                    st.markdown("**Evaluation Metrics:**")
-                    selected_evaluation = pills("", ["Predictions", "SHAP", "Accuracy and F1 Score", "ROC", "PRD"], label_visibility="collapsed")
-
-                else:
-                    pass
-
-            st.divider()
-
-    elif uploaded_X_data is not None and uploaded_Y_data is None and predictor_file_error is False and outcome_file_error is False: 
-        st.markdown(" ")
+    if uploaded_data is not None and input_file_error is False:
         st.subheader('2️⃣ Model Results')
 
         with st.container(border=True):
@@ -233,17 +196,17 @@ with main_tab:
                 selected_xgboost = st.checkbox("XGBoost")
 
             if selected_dtree or selected_xgboost:
+                st.write("")
                 st.markdown("**Evaluation Metrics:**")
-                selected_evaluation = pills("", ["Predictions", "SHAP"], label_visibility="collapsed")
-                st.warning('🔒 Upload outcome feature / results as well for full model evaluation')
+                selected_evaluation = pills("", ["Predictions", "SHAP", "Accuracy and F1 Score", "ROC", "PRD"], label_visibility="collapsed")
 
             else:
                 pass
-            
+
         st.divider()
 
-    elif predictor_file_error is False and outcome_file_error is False:
-        st.info('☝️ Upload CSV files')
+    elif input_file_error is False:
+        st.info('☝️ Input telemetry data and the ML models will make predictions using it')
 
     else:
         pass
@@ -259,21 +222,14 @@ with main_tab:
 
             predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
             predicted_probability = map(lambda x: f"{round(x*100,1)}%" if x > 0.5 else f"{round((1-x)*100)}%", predicted_probability_anomalous)
-                
-            if uploaded_Y_data is not None:
-                actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
-                results = {
-                    "Actual Behaviour": actual_results,
-                    "Predicted Behaviour": predicted_results,
-                    "Predicted Probability": predicted_probability
-                }
-               
-            else:
-                results = {
-                    "Predicted Behaviour": predicted_results,
-                    "Predicted Probability": predicted_probability
-                }
-
+            actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df)
+                    
+            results = {
+                "Actual Behaviour": actual_results,
+                "Predicted Behaviour": predicted_results,
+                "Predicted Probability": predicted_probability
+            }
+            
             results_df = pd.DataFrame(results)
             st.dataframe(results_df)
             st.divider()
@@ -293,20 +249,13 @@ with main_tab:
 
                 predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
                 predicted_probability = map(lambda x: f"{round(x*100,1)}%" if x > 0.5 else f"{round((1-x)*100)}%", predicted_probability_anomalous)
-                
-                if uploaded_Y_data is not None:
-                    actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
-                    results = {
-                        "Actual Behaviour": actual_results,
-                        "Predicted Behaviour": predicted_results,
-                        "Predicted Probability": predicted_probability
-                    }
-                
-                else:
-                    results = {
-                        "Predicted Behaviour": predicted_results,
-                        "Predicted Probability": predicted_probability
-                    }
+                actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df)
+                    
+                results = {
+                    "Actual Behaviour": actual_results,
+                    "Predicted Behaviour": predicted_results,
+                    "Predicted Probability": predicted_probability
+                }
             
                 results_df = pd.DataFrame(results)
                 st.dataframe(results_df)
@@ -320,20 +269,13 @@ with main_tab:
 
                 predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
                 predicted_probability = map(lambda x: f"{round(x*100,1)}%" if x > 0.5 else f"{round((1-x)*100)}%", predicted_probability_anomalous)
-                
-                if uploaded_Y_data is not None:
-                    actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df["Unusual"])
-                    results = {
-                        "Actual Behaviour": actual_results,
-                        "Predicted Behaviour": predicted_results,
-                        "Predicted Probability": predicted_probability
-                    }
-                
-                else:
-                    results = {
-                        "Predicted Behaviour": predicted_results,
-                        "Predicted Probability": predicted_probability
-                    }
+                actual_results = map(lambda x: "Normal" if x == 0 else "Anomaly", Y_df)
+                    
+                results = {
+                    "Actual Behaviour": actual_results,
+                    "Predicted Behaviour": predicted_results,
+                    "Predicted Probability": predicted_probability
+                }
             
                 results_df = pd.DataFrame(results)
                 st.dataframe(results_df)
@@ -703,18 +645,13 @@ csv_Y_sample = df_Y_sample.to_csv(index=False).encode('utf-8')
 with telemetry_data_tab:
     st.subheader("Download Sample")
     st.write("No telemetry data? Readily available samples can be downloaded here as CSV files. The sample comes from the testing dataset which was not used to train the models.")
-    button_left_column, button_right_column = st.columns([1,1]) # Creating columns for download buttons
-    with button_left_column:
-        st.download_button(label="Download predictor features", data=csv_X_sample, file_name="sample_predictor_data.csv", use_container_width=True)
-    with button_right_column:
-        st.download_button(label="Download outcome features", data=csv_Y_sample, file_name="sample_outcome_data.csv", use_container_width=True)
+    st.download_button(label="Download Sample Data", data=csv_X_sample, file_name="sample_data.csv", use_container_width=True)
 
     st.divider()
     st.subheader("Custom Download")
     
     with st.container(border=True):
-        predictor_file_name = st.text_input("File name (predictor features):", value="custom_predictor_data.csv")
-        outcome_file_name = st.text_input("File name (outcome feature):", value="custom_outcome_data.csv")
+        file_name = st.text_input("File name:", value="custom_data.csv")
         rows = st.slider("Select rows from the testing dataset:", 1, 9158, (1, 101))
         sample_size = rows[1] - rows[0]
         st.write(f"Sample size: {sample_size} ")
@@ -725,17 +662,10 @@ with telemetry_data_tab:
             st.warning("Sample size is too high, certain evaluation metrics will take a long time to process")
 
     # Creating custom dataframe
-    df_X_custom = df_X_test.iloc[rows[0]:rows[1], :]
-    df_Y_custom = df_Y_test.iloc[rows[0]:rows[1], :]
+    df_custom = pd.concat([df_X_test.iloc[rows[0]:rows[1], :], df_Y_test.iloc[rows[0]:rows[1], :]], axis=1, join='inner')
+    csv_custom = df_custom.to_csv(index=False).encode('utf-8')
 
-    csv_X_custom = df_X_custom.to_csv(index=False).encode('utf-8')
-    csv_Y_custom = df_Y_custom.to_csv(index=False).encode('utf-8')
-
-    custom_button_left_column, custom_button_right_column = st.columns([1,1]) # Creating columns for download buttons
-    with custom_button_left_column:
-        st.download_button(label="Download predictor features", data=csv_X_custom, file_name=predictor_file_name, use_container_width=True)
-    with custom_button_right_column:
-        st.download_button(label="Download outcome features", data=csv_Y_custom, file_name=outcome_file_name, use_container_width=True)
+    st.download_button(label="Download Custom Data", data=csv_custom, file_name=file_name, use_container_width=True)
 
     st.divider()
 
