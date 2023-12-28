@@ -264,8 +264,8 @@ with main_tab:
                 st.markdown("**XGBoost:**")
 
                 # Creating and showing predicted values and probabilities
-                predicted_probability_anomalous = model1.predict_proba(X_df)[:,1]
-                predicted_results = model1.predict(X_df)
+                predicted_probability_anomalous = model2.predict_proba(X_df)[:,1]
+                predicted_results = model2.predict(X_df)
 
                 predicted_results = map(lambda x: "Normal" if x == 0 else "Anomaly", predicted_results)
                 predicted_probability = map(lambda x: f"{round(x*100,1)}%" if x > 0.5 else f"{round((1-x)*100)}%", predicted_probability_anomalous)
