@@ -612,7 +612,6 @@ with main_tab:
             st.subheader("Precision Recall Display (PRD)")
 
             if model1 is dtree:
-                shap_values = shap_values[0] * 2
                 color = "C1"
 
             else:
