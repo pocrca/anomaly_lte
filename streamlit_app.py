@@ -4,6 +4,7 @@
 # Add a part in info or sidebar (sidebar can be like, this app acts as an interface for users to access the two trained ML models, it processes raw data, ....) about the actual MLP, talk about how the website does all the backend feature engineering and stuff
 
 # Importing libraries
+import time
 import streamlit as st
 import numpy as np 
 import pandas as pd 
@@ -30,6 +31,18 @@ st.set_page_config(
     page_icon="📡",
     initial_sidebar_state="collapsed"
 )
+
+# Create a notification recommending mobile users to use landscape
+if "notification" not in st.session_state:
+    st.session_state["notification"] = False
+
+if st.session_state["notification"] == False:
+    notification_left_column, notification_centre_column, notification_right_column = st.columns([1,5,1])
+    with notification_centre_column:
+        notification = st.info("📱 This app is mobile compatible, but **landscape** is recommended")
+    time.sleep(4)
+    notification.empty()     
+    st.session_state["notification"] = True
 
 # Creating Sidebar
 sidebar_left_column, sidebar_right_column = st.sidebar.columns([1,2.5]) # Create columns for title
@@ -62,9 +75,6 @@ main_tab, telemetry_data_tab, info_tab = st.tabs(["Main", "Telemetry Data", "Inf
 
 # "Main" tab 
 with main_tab:
-
-    st.toast("This app is mobile-compatible but **landscape** is recommended", icon="📱")
-
     predictor_file_error = False
     outcome_file_error = False
     st.write("")
