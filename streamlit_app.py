@@ -37,9 +37,9 @@ if "notification" not in st.session_state:
     st.session_state["notification"] = False
 
 if st.session_state["notification"] == False:
-    notification_left_column, notification_centre_column, notification_right_column = st.columns([1,5,1])
+    notification_left_column, notification_centre_column, notification_right_column = st.columns([1,8,1])
     with notification_centre_column:
-        notification = st.info("📱 This app is mobile compatible, but **landscape** is recommended")
+        notification = st.info("📱 This app is mobile compatible, but only **landscape** use is recommended")
     time.sleep(4)
     notification.empty()     
     st.session_state["notification"] = True
@@ -53,7 +53,7 @@ with sidebar_right_column:
 
 st.sidebar.divider()
 st.sidebar.subheader("About")
-st.sidebar.markdown("This app acts as an interface to access two machine learning models created to predict radio cell behaviour. It also facilitates the evaluation of these models. ")
+st.sidebar.markdown("This application acts as an interface to access two machine learning models created to predict radio cell behaviour. It also facilitates the evaluation of these models. ")
 st.sidebar.subheader("References")
 st.sidebar.markdown("Images used from [Flaticon](https://www.flaticon.com/free-icons/detection). Emojis and icons used from [Emojipedia](https://emojipedia.org/).")
 st.sidebar.divider()
