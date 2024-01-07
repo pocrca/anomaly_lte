@@ -637,15 +637,15 @@ df_Y_test = df_Y_test.iloc[:, 1:]
 
 df_X_sample = pd.read_csv("data/X_test_sample.csv")
 df_Y_sample = pd.read_csv("data/Y_test_sample.csv")
+df_sample = pd.concat([df_X_sample, df_Y_sample], axis=1)
 
-csv_X_sample = df_X_sample.to_csv(index=False).encode('utf-8')
-csv_Y_sample = df_Y_sample.to_csv(index=False).encode('utf-8')
+csv_sample = df_sample.to_csv(index=False).encode('utf-8')
 
 # Main body of "Telemetry Data" tab
 with telemetry_data_tab:
     st.subheader("Download Sample")
     st.write("No telemetry data? Readily available samples can be downloaded here as CSV files. The sample comes from the testing dataset which was not used to train the models.")
-    st.download_button(label="Download Sample Data", data=csv_X_sample, file_name="sample_data.csv", use_container_width=True)
+    st.download_button(label="Download Sample Data", data=csv_sample, file_name="sample_data.csv", use_container_width=True)
 
     st.divider()
     st.subheader("Custom Download")
