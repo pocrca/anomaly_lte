@@ -1,13 +1,12 @@
 numpy
 pandas
 matplotlib
-scikit-learn
+scikit-learn==1.3.2
 jupyter
 seaborn
 streamlit
 dill
 xgboost
-hyperopt
 shap
 optuna
 streamlit_shap
